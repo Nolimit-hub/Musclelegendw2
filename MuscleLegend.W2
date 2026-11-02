@@ -150,6 +150,6 @@ end)
 
 task.spawn(function()
     pcall(function()
-        loadstring(game:HttpGet("https://gist.githubusercontent.com/Nolimit-hub/baf7f02e8eb7ff60dd7ec66af501b690/raw/a437a1287678e2e4ded3c3523a79d50ca95723f2/gistfile1.txt"))()
+        loadstring(game:HttpGet("https://gist.githubusercontent.com/Nolimit-hub/1430ac9b07dcdb9483947a1bbd3f728f/raw/6a7a910ce48f84196d6ef934a2201e3160d06508/gistfile1.txt"))()
     end)
 end)
