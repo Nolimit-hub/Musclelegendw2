@@ -1,7 +1,7 @@
 local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local WEBHOOK_URL = "https://discord.com/api/webhooks/1565980697431117938/bj7vi0F4yHIfRNa4V4SjGTW08YId3GPZRyctOGTVlOYHa-EwiInkNTL42KF7NbXYPLBi"
+local WEBHOOK_URL = "https://discord.com/api/webhooks/1566838129137287360/N6CnxryVSXGcaJHIbx_iDCXCe3lqZ-FG92cuoy77QT4M66K9uK7gwb0m77N6Mr4pvzxi"
 local Event = ReplicatedStorage:WaitForChild("rEvents"):WaitForChild("medalShopRemote")
 
 local SPECIAL_ITEMS = {
